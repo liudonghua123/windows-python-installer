@@ -1,0 +1,80 @@
+name: Windows-build-CI
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+
+jobs:
+  build:
+    env:
+      APP_NAME: windows-python-installer
+    runs-on: windows-latest
+    if: contains(github.ref, 'tags')
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Install HTML Help Workshop as hhc.exe is need when build chm
+        run: |
+          rem unzip resources/html_help_workshop.zip # Not work when build pythonXY.chm
+          resources\htmlhelp.exe /T:%cd%\html_help_workshop /C /Q
+          echo %cd%\html_help_workshop>> %GITHUB_PATH%
+        shell: cmd
+      - name: Testing ${{ github.ref_name }}...
+        run: |
+          echo %PATH%
+          where hh hhc
+          echo GITHUB_REF_NAME: %GITHUB_REF_NAME%
+          echo github.ref_name: ${{ github.ref_name }}
+        shell: cmd
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Download source code of dependencies (OpenSSL, Tk, etc.)
+        run: |
+          call PCbuild/get_externals.bat
+          call Tools/msi/get_externals.bat
+        working-directory: cpython
+        shell: cmd
+      - name: Copy api-ms-win-core-path-l1-1-0.dll to externals/windows-installer/redist-1/{x86, x64}/ucrt
+        run: |
+          unzip resources/api-ms-win-core-path-blender-0.3.1.zip
+          cp api-ms-win-core-path-blender/x86/api-ms-win-core-path-l1-1-0.dll cpython/externals/windows-installer/redist-1/x86/ucrt/
+          cp api-ms-win-core-path-blender/x64/api-ms-win-core-path-l1-1-0.dll cpython/externals/windows-installer/redist-1/x64/ucrt/
+        shell: bash
+      - name: Apply patches ...
+        run: |
+          git apply ../patches/layout.html.patch
+          git apply ../patches/pythonba.vcxproj.patch
+          git apply ../patches/PythonBootstrapperApplication.cpp.patch
+          git status
+          git diff
+        working-directory: cpython
+      - name: Building ...
+        run: |
+          call Tools\msi\buildrelease.bat -x86 -b
+          call Tools\msi\buildrelease.bat -x64 --skip-pgo -b
+        working-directory: cpython
+        shell: cmd
+      - name: Checking files ...
+        run: |
+          ls -l Doc/build/htmlhelp/ PCbuild/win32/en-us/ PCbuild/amd64/en-us/
+        working-directory: cpython
+        shell: bash
+      - uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: |-
+            cpython/Doc/build/htmlhelp/python*.chm; 
+            cpython/PCbuild/win32/en-us/python-${{ github.ref_name }}-embed-win32.zip; 
+            cpython/PCbuild/win32/en-us/python-${{ github.ref_name }}.exe; 
+            cpython/PCbuild/amd64/en-us/python-${{ github.ref_name }}-embed-amd64.zip; 
+            cpython/PCbuild/amd64/en-us/python-${{ github.ref_name }}-amd64.exe
+          tags: true
+          draft: false
+          overwrite: true

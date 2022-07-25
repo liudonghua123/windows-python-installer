@@ -1,0 +1,13 @@
+diff --git a/Tools/msi/bundle/bootstrap/PythonBootstrapperApplication.cpp b/Tools/msi/bundle/bootstrap/PythonBootstrapperApplication.cpp
+index 3c54e40133..c64d6b5be8 100644
+--- a/Tools/msi/bundle/bootstrap/PythonBootstrapperApplication.cpp
++++ b/Tools/msi/bundle/bootstrap/PythonBootstrapperApplication.cpp
+@@ -1314,7 +1314,7 @@ private:
+         hr = pThis->CreateMainWindow();
+         BalExitOnFailure(hr, "Failed to create main window.");
+ 
+-        pThis->ValidateOperatingSystem();
++        // pThis->ValidateOperatingSystem();
+ 
+         if (FAILED(pThis->_hrFinal)) {
+             pThis->SetState(PYBA_STATE_FAILED, hr);
