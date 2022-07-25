@@ -20,7 +20,7 @@ jobs:
           submodules: recursive
       - name: Install HTML Help Workshop as hhc.exe is need when build chm
         run: |
-          rem unzip resources/html_help_workshop.zip # Not work when build pythonXY.chm
+          rem unzip resources/html_help_workshop.zip
           resources\htmlhelp.exe /T:%cd%\html_help_workshop /C /Q
           echo %cd%\html_help_workshop>> %GITHUB_PATH%
         shell: cmd
