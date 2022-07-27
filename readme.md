@@ -7,7 +7,7 @@ A windows python installer repack which is support on windows 7+. This project d
 - [x] Modify the windows installer, remove os limitation for making the installer to work on windows 7+.
 - [x] Build on `Visual Studio 2022` as my local or the default in github actions is `Visual Studio 2022`.
 - [x] Change the font of `pythonXY.chm` to `'Microsoft YaHei'` as the default looks ugly.
-- [ ] Include `api-ms-win-core-path-l1-1-0.dll` which is from https://github.com/nalexandru/api-ms-win-core-path-HACK in the installer to support running python 3.9+ on windows 7+.
+- [x] Include `api-ms-win-core-path-l1-1-0.dll` which is from https://github.com/nalexandru/api-ms-win-core-path-HACK in the installer to support running python 3.9+ on windows 7+.
 
 ### Motivation
 

@@ -40,20 +40,27 @@ jobs:
           call Tools/msi/get_externals.bat
         working-directory: cpython
         shell: cmd
-      - name: Copy api-ms-win-core-path-l1-1-0.dll to externals/windows-installer/redist-1/{x86, x64}/ucrt
-        run: |
-          unzip resources/api-ms-win-core-path-blender-0.3.1.zip
-          cp api-ms-win-core-path-blender/x86/api-ms-win-core-path-l1-1-0.dll cpython/externals/windows-installer/redist-1/x86/ucrt/
-          cp api-ms-win-core-path-blender/x64/api-ms-win-core-path-l1-1-0.dll cpython/externals/windows-installer/redist-1/x64/ucrt/
-        shell: bash
       - name: Apply patches ...
         run: |
           git apply ../patches/layout.html.patch
           git apply ../patches/pythonba.vcxproj.patch
           git apply ../patches/PythonBootstrapperApplication.cpp.patch
+          git apply ../patches/exe_files.wxs.patch
           git status
           git diff
         working-directory: cpython
+      - name: First phase building ...
+        run: |
+          call Tools\msi\buildrelease.bat -x86 -b
+          call Tools\msi\buildrelease.bat -x64 --skip-pgo -b
+        working-directory: cpython
+        shell: cmd
+      - name: Copy api-ms-win-core-path-l1-1-0.dll to cpython/PCbuild/{win32, amd64}/
+        run: |
+          unzip resources/api-ms-win-core-path-blender-0.3.1.zip
+          cp api-ms-win-core-path-blender/x86/api-ms-win-core-path-l1-1-0.dll cpython/PCbuild/win32/
+          cp api-ms-win-core-path-blender/x64/api-ms-win-core-path-l1-1-0.dll cpython/PCbuild/amd64/
+        shell: bash
       - name: Building ...
         run: |
           call Tools\msi\buildrelease.bat -x86 -b
