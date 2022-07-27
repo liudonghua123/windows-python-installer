@@ -6,7 +6,7 @@ index 15bf6a0663..add5742693 100644
                  <File Name="vcruntime140_1.dll" Source="vcruntime140_1.dll" KeyPath="yes" />
              </Component>
  <?endif ?>
-+            <Component Id="api-ms-win-core-path-l1-1-0.dll" Directory="InstallDirectory" Guid="*">
++            <Component Id="api_ms_win_core_path_l1_1_0.dll" Directory="InstallDirectory" Guid="*">
 +                <File Name="api-ms-win-core-path-l1-1-0.dll" Source="api-ms-win-core-path-l1-1-0.dll" KeyPath="yes" />
 +            </Component>
          </ComponentGroup>
