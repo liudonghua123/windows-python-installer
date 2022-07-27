@@ -49,22 +49,21 @@ jobs:
           git status
           git diff
         working-directory: cpython
-      - name: First phase building ...
-        run: |
-          call Tools\msi\buildrelease.bat -x86 -b
-          call Tools\msi\buildrelease.bat -x64 --skip-pgo -b
-        working-directory: cpython
-        shell: cmd
-      - name: Copy api-ms-win-core-path-l1-1-0.dll to cpython/PCbuild/{win32, amd64}/
+      - name: Copy api-ms-win-core-path-l1-1-0.dll to cpython/PCbuild/{win32,amd64}/
         run: |
           unzip resources/api-ms-win-core-path-blender-0.3.1.zip
+          mkdir -p cpython/PCbuild/{win32,amd64}
           cp api-ms-win-core-path-blender/x86/api-ms-win-core-path-l1-1-0.dll cpython/PCbuild/win32/
           cp api-ms-win-core-path-blender/x64/api-ms-win-core-path-l1-1-0.dll cpython/PCbuild/amd64/
         shell: bash
       - name: Building ...
         run: |
+          rem -b -> Incrementally build Python rather than rebuilding
+          rem -D -> Do not build documentation
+          rem --skip-pgo -> Build x64 installers without using PGO
+          rem documentation is shared by all platforms, so we need to build it only once
           call Tools\msi\buildrelease.bat -x86 -b
-          call Tools\msi\buildrelease.bat -x64 --skip-pgo -b
+          call Tools\msi\buildrelease.bat -x64 -b -D
         working-directory: cpython
         shell: cmd
       - name: Checking files ...
