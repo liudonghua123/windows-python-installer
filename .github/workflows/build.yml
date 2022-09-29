@@ -63,6 +63,9 @@ jobs:
           rem documentation is shared by all platforms, so we need to build it only once
           call Tools\msi\buildrelease.bat -x86 -b
           call Tools\msi\buildrelease.bat -x64 -b -D
+          rem build chm docs
+          rem see https://github.com/python/cpython/pull/32038
+          call Doc\make.bat htmlhelp
         working-directory: cpython
         shell: cmd
       - name: Checking files ...
@@ -78,8 +81,10 @@ jobs:
             cpython/Doc/build/htmlhelp/python*.chm; 
             cpython/PCbuild/win32/en-us/python-${{ github.ref_name }}-embed-win32.zip; 
             cpython/PCbuild/win32/en-us/python-${{ github.ref_name }}.exe; 
+            cpython/PCbuild/win32/en-us/python*.nupkg;
             cpython/PCbuild/amd64/en-us/python-${{ github.ref_name }}-embed-amd64.zip; 
-            cpython/PCbuild/amd64/en-us/python-${{ github.ref_name }}-amd64.exe
+            cpython/PCbuild/amd64/en-us/python-${{ github.ref_name }}-amd64.exe;
+            cpython/PCbuild/amd64/en-us/python*.nupkg;
           tags: true
           draft: false
           overwrite: true
