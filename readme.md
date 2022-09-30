@@ -15,6 +15,10 @@ I wrote a simple pyqt5 based app which use python 3.10 and packaged via pyinstal
 
 Maybe someone else need to run python 3.9, 3.10 or later versions on their windows 7, so I create this project to help them.
 
+### Remarks
+
+In order to run this python 3.9/3.10/3.11 on windows 7, you need windows 7 sp1 and install [UCRT](https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c) which is provided as [KB2999226](https://www.microsoft.com/en-us/download/details.aspx?id=49077).
+
 ### Reference
 
 - https://cpython-core-tutorial.readthedocs.io/en/latest/build_cpython_windows.html
