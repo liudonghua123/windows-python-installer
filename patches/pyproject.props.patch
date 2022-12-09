@@ -1,0 +1,23 @@
+diff --git a/PCbuild/pyproject.props b/PCbuild/pyproject.props
+index f3068978fc..be237e0835 100644
+--- a/PCbuild/pyproject.props
++++ b/PCbuild/pyproject.props
+@@ -227,4 +227,18 @@ public override bool Execute() {
+     <Warning Text="vcruntime*.dll not found under $(VCRedistDir)." Condition="@(VCRuntimeDLL) == ''" />
+     <Message Text="VC Runtime DLL(s):%0A- @(VCRuntimeDLL,'%0A- ')" />
+   </Target>
++
++  <Target Name="FindPythonForBuild" Condition="$(PythonForBuild) == ''">
++    <Exec Command="&quot;$(MSBuildThisFileDirectory)\find_python.bat&quot; -q"
++          EchoOff="true"
++          ConsoleToMsBuild="true">
++        <Output TaskParameter="ConsoleOutput" ItemName="_CmdExeLines" />
++    </Exec>
++    <PropertyGroup>
++      <PythonForBuild>@(_CmdExeLines)</PythonForBuild>
++    </PropertyGroup>
++    <Error Text="Failed to locate suitable Python runtime for building from source." Condition="$(PythonForBuild)==''" />
++    <Message Text="Using PythonForBuild=$(PythonForBuild)" Importance="high" />
++  </Target>
++  
+ </Project>
