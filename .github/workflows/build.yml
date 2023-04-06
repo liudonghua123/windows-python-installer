@@ -43,7 +43,6 @@ jobs:
       - name: Apply patches ...
         run: |
           git apply ../patches/layout.html.patch
-          git apply ../patches/pythonba.vcxproj.patch
           git apply ../patches/PythonBootstrapperApplication.cpp.patch
           git apply ../patches/exe_files.wxs.patch
           git status
