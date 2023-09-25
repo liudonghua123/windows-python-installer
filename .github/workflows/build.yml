@@ -45,6 +45,8 @@ jobs:
           git apply ../patches/layout.html.patch
           git apply ../patches/PythonBootstrapperApplication.cpp.patch
           git apply ../patches/exe_files.wxs.patch
+          git apply ../patches/posixmodule.c.patch
+          git apply ../patches/_winapi.c.patch
           git status
           git diff
         working-directory: cpython
