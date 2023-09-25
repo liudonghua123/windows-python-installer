@@ -1,0 +1,66 @@
+diff --git a/Modules/posixmodule.c b/Modules/posixmodule.c
+index b9ca2865c0..802a0e6da1 100644
+--- a/Modules/posixmodule.c
++++ b/Modules/posixmodule.c
+@@ -8759,32 +8759,43 @@ os_setpgrp_impl(PyObject *module)
+ #ifdef HAVE_GETPPID
+ 
+ #ifdef MS_WINDOWS
+-#include <processsnapshot.h>
++#include <tlhelp32.h>
+ 
+ static PyObject*
+-win32_getppid(void)
++win32_getppid()
+ {
+-    DWORD error;
++    HANDLE snapshot;
++    pid_t mypid;
+     PyObject* result = NULL;
+-    HANDLE process = GetCurrentProcess();
++    BOOL have_record;
++    PROCESSENTRY32 pe;
+ 
+-    HPSS snapshot = NULL;
+-    error = PssCaptureSnapshot(process, PSS_CAPTURE_NONE, 0, &snapshot);
+-    if (error != ERROR_SUCCESS) {
+-        return PyErr_SetFromWindowsErr(error);
+-    }
++    mypid = getpid(); /* This function never fails */
+ 
+-    PSS_PROCESS_INFORMATION info;
+-    error = PssQuerySnapshot(snapshot, PSS_QUERY_PROCESS_INFORMATION, &info,
+-                             sizeof(info));
+-    if (error == ERROR_SUCCESS) {
+-        result = PyLong_FromUnsignedLong(info.ParentProcessId);
+-    }
+-    else {
+-        result = PyErr_SetFromWindowsErr(error);
++    snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
++    if (snapshot == INVALID_HANDLE_VALUE)
++        return PyErr_SetFromWindowsErr(GetLastError());
++
++    pe.dwSize = sizeof(pe);
++    have_record = Process32First(snapshot, &pe);
++    while (have_record) {
++        if (mypid == (pid_t)pe.th32ProcessID) {
++            /* We could cache the ulong value in a static variable. */
++            result = PyLong_FromPid((pid_t)pe.th32ParentProcessID);
++            break;
++        }
++
++        have_record = Process32Next(snapshot, &pe);
+     }
+ 
+-    PssFreeSnapshot(process, snapshot);
++    /* If our loop exits and our pid was not found (result will be NULL)
++     * then GetLastError will return ERROR_NO_MORE_FILES. This is an
++     * error anyway, so let's raise it. */
++    if (!result)
++        result = PyErr_SetFromWindowsErr(GetLastError());
++
++    CloseHandle(snapshot);
++
+     return result;
+ }
+ #endif /*MS_WINDOWS*/
