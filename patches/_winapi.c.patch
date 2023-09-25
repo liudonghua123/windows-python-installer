@@ -1,0 +1,44 @@
+diff --git a/Modules/_winapi.c b/Modules/_winapi.c
+index 77275408ae..8532356266 100644
+--- a/Modules/_winapi.c
++++ b/Modules/_winapi.c
+@@ -2104,6 +2104,8 @@ _winapi_NeedCurrentDirectoryForExePath_impl(PyObject *module,
+     return result;
+ }
+ 
++typedef HRESULT (WINAPI *CopyFile2Func)(PCWSTR pwszExistingFileName, PCWSTR pwszNewFileName, COPYFILE2_EXTENDED_PARAMETERS *pExtendedParameters);
++CopyFile2Func Py_CopyFile2;
+ 
+ /*[clinic input]
+ _winapi.CopyFile2
+@@ -2146,7 +2148,7 @@ _winapi_CopyFile2_impl(PyObject *module, LPCWSTR existing_file_name,
+     }
+     */
+     Py_BEGIN_ALLOW_THREADS;
+-    hr = CopyFile2(existing_file_name, new_file_name, &params);
++    hr = Py_CopyFile2(existing_file_name, new_file_name, &params);
+     Py_END_ALLOW_THREADS;
+     /* For future implementation.
+     if (progress_routine != Py_None) {
+@@ -2420,5 +2422,21 @@ static struct PyModuleDef winapi_module = {
+ PyMODINIT_FUNC
+ PyInit__winapi(void)
+ {
++    HMODULE hKernel32 = GetModuleHandleW(L"kernel32");
++    if (!hKernel32) return NULL;
++    if (!(Py_CopyFile2 = (CopyFile2Func)GetProcAddress(hKernel32, "CopyFile2"))) {
++        for (PyMethodDef *method = winapi_functions; method->ml_name; method++) {
++            if (!strcmp(method->ml_name, "CopyFile2")) {
++                PyMethodDef *last = winapi_functions + Py_ARRAY_LENGTH(winapi_functions) - 2;
++                if (method == last) {
++                    memset(method, 0, sizeof(*method));
++                } else {
++                    *method = *last;
++                    memset(last, 0, sizeof(*last));
++                }
++                break;
++            }
++        }
++    }
+     return PyModuleDef_Init(&winapi_module);
+ }
