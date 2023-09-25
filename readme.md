@@ -19,7 +19,7 @@ Maybe someone else need to run python 3.9, 3.10 or later versions on their windo
 
 In order to run this python 3.9/3.10/3.11 on windows 7, you need windows 7 sp1 and install [UCRT](https://support.microsoft.com/en-us/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c) which is provided as [KB2999226](https://www.microsoft.com/en-us/download/details.aspx?id=49077).
 
-For python 3.12, due to use of `AddDllDirectory`, you need to install `KB2533623`, see also [Microsoft Security Advisory: Insecure library loading could allow remote code execution](https://support.microsoft.com/en-us/topic/microsoft-security-advisory-insecure-library-loading-could-allow-remote-code-execution-486ea436-2d47-27e5-6cb9-26ab7230c704).
+For python 3.12, due to use of `AddDllDirectory`, you need to install `KB2533623`, see also [Microsoft Security Advisory: Insecure library loading could allow remote code execution](https://support.microsoft.com/en-us/topic/microsoft-security-advisory-insecure-library-loading-could-allow-remote-code-execution-486ea436-2d47-27e5-6cb9-26ab7230c704), [adang1345/PythonWin7/Notes.md](https://github.com/adang1345/PythonWin7/blob/master/Notes.md).
 
 The `KB2533623` could not download anymore, so I upload to `resources` directory.
 
