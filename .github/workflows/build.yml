@@ -23,6 +23,17 @@ jobs:
         with:
           submodules: recursive
           ref: ${{ github.event.inputs.branch }}
+      - name: Install winget
+        uses: Cyberboss/install-winget@v1
+      - name: Install Microsoft.VisualStudio.Component.VC.140
+        run: |
+          # Try to fix: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(456,5): error MSB8020: The build tools for Visual Studio 2015 (Platform Toolset = 'v140') cannot be found. To build using the v140 build tools, please install Visual Studio 2015 build tools.  Alternatively, you may upgrade to the current Visual Studio tools by selecting the Project menu or right-click the solution, and then selecting "Retarget solution". [D:\a\windows-python-installer\windows-python-installer\cpython\Tools\msi\bundle\bootstrap\pythonba.vcxproj]
+          # https://learn.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022
+          # https://learn.microsoft.com/en-us/visualstudio/install/use-command-line-parameters-to-install-visual-studio?view=vs-2022#use-winget-to-install-or-modify-visual-studio
+          # https://github.com/MicrosoftDocs/visualstudio-docs/blob/main/docs/install/use-command-line-parameters-to-install-visual-studio.md
+          winget install --accept-source-agreements --accept-package-agreements --force --id Microsoft.VisualStudio.2022.Enterprise --override "--quiet --add Microsoft.VisualStudio.Component.VC.140"
+          # https://winstall.app/apps/Microsoft.VisualStudio.2019.BuildTools
+          # winget install --id=Microsoft.VisualStudio.2019.BuildTools  -e
       - name: 'Checkout and push specified tag version of cpython'
         run: |
           git status
