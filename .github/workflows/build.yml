@@ -75,14 +75,17 @@ jobs:
         shell: cmd
       - name: Apply patches ...
         run: |
-          git apply ../patches/layout.html.patch
-          git apply ../patches/PythonBootstrapperApplication.cpp.patch
-          git apply ../patches/exe_files.wxs.patch
-          git apply ../patches/posixmodule.c.patch
-          git apply ../patches/_winapi.c.patch
+          # git apply ../patches/layout.html.patch
+          # git apply ../patches/PythonBootstrapperApplication.cpp.patch
+          # git apply ../patches/exe_files.wxs.patch
+          # git apply ../patches/posixmodule.c.patch
+          # git apply ../patches/_winapi.c.patch
+          # git apply patches from patches directory
+          git apply ../patches/*.patch
           git status
           git diff
         working-directory: cpython
+        shell: bash
       - name: Copy api-ms-win-core-path-l1-1-0.dll to cpython/PCbuild/{win32,amd64}/
         run: |
           unzip resources/api-ms-win-core-path-blender-0.3.1.zip
