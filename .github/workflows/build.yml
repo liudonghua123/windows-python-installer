@@ -1,23 +1,45 @@
 name: Windows-build-CI
 
 on:
-  push:
-    branches:
-      - '*'
-    tags:
-      - '*'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'The branch to build'
+        required: true
+        default: '3.9'
+      tag_short_version:
+        description: 'The short version of cpython upstream, eg: use 3.9.0 instead of v3.9.0'
+        required: true
+        default: '3.9.0'
 
 jobs:
   build:
     env:
       APP_NAME: windows-python-installer
     runs-on: windows-latest
-    if: contains(github.ref, 'tags')
     steps:
       - name: Checkout repository and submodules
         uses: actions/checkout@v3
         with:
           submodules: recursive
+          ref: ${{ github.event.inputs.branch }}
+      - name: 'Checkout and push specified tag version of cpython'
+        run: |
+          git status
+          git config --global pull.rebase false
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          cd cpython
+          git remote -v
+          git fetch --all --tags
+          git checkout tags/v${{ github.event.inputs.tag_short_version }}
+          git status
+          cd ..
+          git add cpython
+          git commit -m "update python to ${{ github.event.inputs.tag_short_version }}"
+          git tag ${{ github.event.inputs.tag_short_version }}
+          git push
+          git push --tag          
 
       # - name: Install HTML Help Workshop as hhc.exe is need when build chm
       #   run: |
@@ -26,12 +48,12 @@ jobs:
       #     echo %cd%\html_help_workshop>> %GITHUB_PATH%
       #   shell: cmd
       #
-      # - name: Testing ${{ github.ref_name }}...
+      # - name: Testing ${{ github.event.inputs.tag_short_version }}...
       #   run: |
       #     echo %PATH%
       #     where hh hhc
       #     echo GITHUB_REF_NAME: %GITHUB_REF_NAME%
-      #     echo github.ref_name: ${{ github.ref_name }}
+      #     echo github.event.inputs.tag_short_version: ${{ github.event.inputs.tag_short_version }}
       #   shell: cmd
       #
       # - name: Check environment in cmd shell
@@ -116,12 +138,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          tag_name: ${{ github.event.inputs.tag_short_version }}
           file: |-
             cpython/Doc/build/htmlhelp/python*.chm; 
-            cpython/PCbuild/win32/en-us/python-${{ github.ref_name }}-embed-win32.zip; 
-            cpython/PCbuild/win32/en-us/python-${{ github.ref_name }}.exe; 
-            cpython/PCbuild/amd64/en-us/python-${{ github.ref_name }}-embed-amd64.zip; 
-            cpython/PCbuild/amd64/en-us/python-${{ github.ref_name }}-amd64.exe
+            cpython/PCbuild/win32/en-us/python-${{ github.event.inputs.tag_short_version }}-embed-win32.zip; 
+            cpython/PCbuild/win32/en-us/python-${{ github.event.inputs.tag_short_version }}.exe; 
+            cpython/PCbuild/amd64/en-us/python-${{ github.event.inputs.tag_short_version }}-embed-amd64.zip; 
+            cpython/PCbuild/amd64/en-us/python-${{ github.event.inputs.tag_short_version }}-amd64.exe
           tags: true
           draft: false
           overwrite: true
