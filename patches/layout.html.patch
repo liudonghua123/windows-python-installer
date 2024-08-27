@@ -1,14 +1,14 @@
 diff --git a/Doc/tools/templates/layout.html b/Doc/tools/templates/layout.html
-index 98ccf42248..9f5a573b1b 100644
+index b09fd21a8dd..9a50b04c894 100644
 --- a/Doc/tools/templates/layout.html
 +++ b/Doc/tools/templates/layout.html
-@@ -31,6 +31,9 @@
+@@ -42,6 +42,9 @@
              width: 100%;
          {{ "}" }}
        {{ "}" }}
 +      * {
-+        font-family: 'Microsoft YaHei', Roboto, Helvetica, sans-serif !important;
++          font-family: 'Microsoft YaHei', Roboto, Helvetica, sans-serif !important;
 +      }
      </style>
  {{ super() }}
- {% endblock %}
+ 
