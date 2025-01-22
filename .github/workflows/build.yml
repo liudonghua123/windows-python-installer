@@ -51,6 +51,17 @@ jobs:
           git tag ${{ github.event.inputs.tag_short_version }}
           git push
           git push --tag
+      - name: Fix build failure for cpython v3.10.16, v3.11.11, v3.12.8 and v3.13.1
+        if: contains(fromJSON('["3.10.16", "3.11.11", "3.12.8", "3.13.1"]'), github.event.inputs.tag_short_version)
+        run: |
+          # try to fix 'gh-issue:' or 'bpo:' must be specified in the metadata!
+          # https://github.com/python/cpython/pull/128875
+          # https://github.com/python/blurb/pull/35/files
+          # https://github.com/python/cpython/pull/128890/commits
+          # git cherry-pick 606fd98551df973262f02a1e5f469e44ec4613ec || echo "Cherry-pick failed. Resolve conflicts manually."
+          find Misc/NEWS.d/ -type f -name '*.rst' -exec sed -i 's/\.. gh:/.. gh-issue:/g' {} +
+        working-directory: cpython
+        shell: bash
       - name: Install HTML Help Workshop as hhc.exe is need when build chm
         run: |
           rem unzip resources/html_help_workshop.zip
