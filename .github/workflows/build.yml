@@ -6,11 +6,11 @@ on:
       branch:
         description: 'The branch to build'
         required: true
-        default: '3.13'
+        default: '3.14'
       tag_short_version:
-        description: 'The short version of cpython upstream, eg: use 3.13.0 instead of v3.13.0'
+        description: 'The short version of cpython upstream, eg: use 3.14.0 instead of v3.14.0'
         required: true
-        default: '3.13.0'
+        default: '3.14.0'
 
 jobs:
   build:
