@@ -31,7 +31,7 @@ jobs:
           # https://learn.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022
           # https://learn.microsoft.com/en-us/visualstudio/install/use-command-line-parameters-to-install-visual-studio?view=vs-2022#use-winget-to-install-or-modify-visual-studio
           # https://github.com/MicrosoftDocs/visualstudio-docs/blob/main/docs/install/use-command-line-parameters-to-install-visual-studio.md
-          winget install --accept-source-agreements --accept-package-agreements --force --id Microsoft.VisualStudio.2022.Enterprise --override "--quiet --add Microsoft.VisualStudio.Component.VC.140"
+          # winget install --accept-source-agreements --accept-package-agreements --force --id Microsoft.VisualStudio.2022.Enterprise --override "--quiet --add Microsoft.VisualStudio.Component.VC.140"
           # https://winstall.app/apps/Microsoft.VisualStudio.2019.BuildTools
           # winget install --id=Microsoft.VisualStudio.2019.BuildTools  -e
       - name: 'Checkout and push specified tag version of cpython'
