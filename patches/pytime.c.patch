@@ -1,5 +1,5 @@
 diff --git a/Python/pytime.c b/Python/pytime.c
-index 67cf6437264..544e3e04199 100644
+index 67cf6437264..e534e9a149a 100644
 --- a/Python/pytime.c
 +++ b/Python/pytime.c
 @@ -910,7 +910,7 @@ py_get_system_clock(PyTime_t *tp, _Py_clock_info_t *info, int raise_exc)
@@ -38,7 +38,7 @@ index 67cf6437264..544e3e04199 100644
  
 +    static _PyTimeFraction base = {0, 0};
 +    if (base.denom == 0) {
-+        if (py_win_perf_counter_frequency(&base) < 0) {
++        if (PyStatus_Exception(py_win_perf_counter_frequency(&base))) {
 +            return -1;
 +        }
 +    }
