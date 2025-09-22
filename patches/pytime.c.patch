@@ -1,38 +1,60 @@
 diff --git a/Python/pytime.c b/Python/pytime.c
-index 67cf6437264..e534e9a149a 100644
+index 67cf6437264..6270e6d9af1 100644
 --- a/Python/pytime.c
 +++ b/Python/pytime.c
-@@ -910,7 +910,7 @@ py_get_system_clock(PyTime_t *tp, _Py_clock_info_t *info, int raise_exc)
+@@ -910,22 +910,35 @@ py_get_system_clock(PyTime_t *tp, _Py_clock_info_t *info, int raise_exc)
      FILETIME system_time;
      ULARGE_INTEGER large;
  
 -    GetSystemTimePreciseAsFileTime(&system_time);
-+    GetSystemTimeAsFileTime(&system_time);
-     large.u.LowPart = system_time.dwLowDateTime;
-     large.u.HighPart = system_time.dwHighDateTime;
-     /* 11,644,473,600,000,000,000: number of nanoseconds between
-@@ -919,11 +919,16 @@ py_get_system_clock(PyTime_t *tp, _Py_clock_info_t *info, int raise_exc)
-     PyTime_t ns = (large.QuadPart - 116444736000000000) * 100;
-     *tp = ns;
-     if (info) {
+-    large.u.LowPart = system_time.dwLowDateTime;
+-    large.u.HighPart = system_time.dwHighDateTime;
+-    /* 11,644,473,600,000,000,000: number of nanoseconds between
+-       the 1st january 1601 and the 1st january 1970 (369 years + 89 leap
+-       days). */
+-    PyTime_t ns = (large.QuadPart - 116444736000000000) * 100;
+-    *tp = ns;
+-    if (info) {
 -        // GetSystemTimePreciseAsFileTime() is implemented using
 -        // QueryPerformanceCounter() internally.
 -        info->implementation = "GetSystemTimePreciseAsFileTime()";
-+        DWORD timeAdjustment, timeIncrement;
-+        BOOL isTimeAdjustmentDisabled, ok;
-+        info->implementation = "GetSystemTimeAsFileTime()";
-         info->monotonic = 0;
+-        info->monotonic = 0;
 -        info->resolution = _PyTimeFraction_Resolution(&_PyRuntime.time.base);
-+        ok = GetSystemTimeAdjustment(&timeAdjustment, &timeIncrement, &isTimeAdjustmentDisabled);
-+        if (!ok) {
-+            PyErr_SetFromWindowsErr(0);
-+            return -1;
+-        info->adjustable = 1;
+-    }
++    HMODULE hKernel = GetModuleHandleA("kernel32.dll");
++    typedef VOID (WINAPI *GetPreciseTimeFunc)(LPFILETIME);
++    GetPreciseTimeFunc pGetPreciseTime = (GetPreciseTimeFunc)GetProcAddress(hKernel, "GetSystemTimePreciseAsFileTime");
++    if (pGetPreciseTime) {
++        pGetPreciseTime(&system_time);
++        large.u.LowPart = system_time.dwLowDateTime;
++        large.u.HighPart = system_time.dwHighDateTime;
++        PyTime_t ns = (large.QuadPart - 116444736000000000) * 100;
++        *tp = ns;
++        if (info) {
++            info->implementation = "GetSystemTimePreciseAsFileTime()";
++            info->monotonic = 0;
++            info->resolution = _PyTimeFraction_Resolution(&_PyRuntime.time.base);
++            info->adjustable = 1;
 +        }
-+        info->resolution = timeIncrement * 1e-7;
-         info->adjustable = 1;
-     }
++    } else {
++        // For win7, fallback to GetSystemTimeAsFileTime
++        GetSystemTimeAsFileTime(&system_time);
++        large.u.LowPart = system_time.dwLowDateTime;
++        large.u.HighPart = system_time.dwHighDateTime;
++        PyTime_t ns = (large.QuadPart - 116444736000000000) * 100;
++        *tp = ns;
++        if (info) {
++            info->implementation = "GetSystemTimeAsFileTime()";
++            info->monotonic = 0;
++            info->resolution = _PyTimeFraction_Resolution(&_PyRuntime.time.base);
++            info->adjustable = 1;
++        }
++     }
  
-@@ -1066,9 +1071,16 @@ py_get_win_perf_counter(PyTime_t *tp, _Py_clock_info_t *info, int raise_exc)
+ #else   /* MS_WINDOWS */
+     int err;
+@@ -1066,9 +1079,16 @@ py_get_win_perf_counter(PyTime_t *tp, _Py_clock_info_t *info, int raise_exc)
  {
      assert(info == NULL || raise_exc);
  
@@ -50,7 +72,7 @@ index 67cf6437264..e534e9a149a 100644
          info->monotonic = 1;
          info->adjustable = 0;
      }
-@@ -1084,7 +1096,7 @@ py_get_win_perf_counter(PyTime_t *tp, _Py_clock_info_t *info, int raise_exc)
+@@ -1084,7 +1104,7 @@ py_get_win_perf_counter(PyTime_t *tp, _Py_clock_info_t *info, int raise_exc)
                    "LONGLONG is larger than PyTime_t");
      ticks = (PyTime_t)ticksll;
  
