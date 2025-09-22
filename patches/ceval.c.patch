@@ -1,0 +1,72 @@
+diff --git a/Python/ceval.c b/Python/ceval.c
+index e5b1b82e45e..9a23766ca39 100644
+--- a/Python/ceval.c
++++ b/Python/ceval.c
+@@ -48,7 +48,11 @@
+ #include "setobject.h"
+ #include "pycore_stackref.h"
+ 
++
+ #include <stdbool.h>              // bool
++#ifdef _WIN32
++#include "stack_win7.h"
++#endif
+ 
+ #if !defined(Py_BUILD_CORE)
+ #  error "ceval.c must be build with Py_BUILD_CORE define for best performance"
+@@ -429,14 +433,25 @@ void
+ _Py_InitializeRecursionLimits(PyThreadState *tstate)
+ {
+     _PyThreadStateImpl *_tstate = (_PyThreadStateImpl *)tstate;
+-#ifdef WIN32
+-    ULONG_PTR low, high;
+-    GetCurrentThreadStackLimits(&low, &high);
+-    _tstate->c_stack_top = (uintptr_t)high;
+-    ULONG guarantee = 0;
+-    SetThreadStackGuarantee(&guarantee);
+-    _tstate->c_stack_hard_limit = ((uintptr_t)low) + guarantee + _PyOS_STACK_MARGIN_BYTES;
+-    _tstate->c_stack_soft_limit = _tstate->c_stack_hard_limit + _PyOS_STACK_MARGIN_BYTES;
++#ifdef _WIN32
++    // 仅 Windows 8+ 支持 GetCurrentThreadStackLimits，需运行时检测
++    HMODULE hKernel = GetModuleHandleA("kernel32.dll");
++    typedef void (WINAPI *GetStackLimitsFunc)(PULONG_PTR, PULONG_PTR);
++    GetStackLimitsFunc pGetStackLimits = (GetStackLimitsFunc)GetProcAddress(hKernel, "GetCurrentThreadStackLimits");
++    if (pGetStackLimits) {
++        ULONG_PTR low, high;
++        pGetStackLimits(&low, &high);
++        _tstate->c_stack_top = (uintptr_t)high;
++        ULONG guarantee = 0;
++        SetThreadStackGuarantee(&guarantee);
++        _tstate->c_stack_hard_limit = ((uintptr_t)low) + guarantee + _PyOS_STACK_MARGIN_BYTES;
++        _tstate->c_stack_soft_limit = _tstate->c_stack_hard_limit + _PyOS_STACK_MARGIN_BYTES;
++    } else {
++        // Win7 及以下，使用 NT_TIB
++        _tstate->c_stack_top = get_stack_top_win7();
++        _tstate->c_stack_hard_limit = get_stack_bottom_win7() + _PyOS_STACK_MARGIN_BYTES;
++        _tstate->c_stack_soft_limit = _tstate->c_stack_hard_limit + _PyOS_STACK_MARGIN_BYTES;
++    }
+ #else
+     uintptr_t here_addr = _Py_get_machine_stack_pointer();
+ /// XXX musl supports HAVE_PTHRED_GETATTR_NP, but the resulting stack size
+diff --git a/Python/stack_win7.h b/Python/stack_win7.h
+new file mode 100644
+index 00000000000..eb519371471
+--- /dev/null
++++ b/Python/stack_win7.h
+@@ -0,0 +1,16 @@
++#if defined(_WIN32) && !defined(_WIN64)
++#include <windows.h>
++#include <winnt.h>
++#endif
++
++uintptr_t get_stack_top_win7()
++{
++#if defined(_WIN32) && !defined(_WIN64)
++    /* 32位 Windows，使用 NT_TIB 获取栈顶 */
++    NT_TIB *pTib = (NT_TIB *)NtCurrentTeb();
++    return (uintptr_t)pTib->StackBase;
++#else
++    /* 64位或非 Windows，返回 0 */
++    return 0;
++#endif
++}
